@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Minecraft Java Server on Arch Linux</title>
+<style>
+:root{--bg:#fafaf9;--panel:#fff;--text:#1d2330;--mute:#5d6676;--line:#e3e5ea;--acc:#2f7d3a;--accbg:#e9f5ea;--code:#14181f;--codet:#e6e9ef;--warn:#fff4e0;--warnb:#d98a00}
+@media(prefers-color-scheme:dark){:root{--bg:#12151c;--panel:#181c25;--text:#e4e7ee;--mute:#9aa3b5;--line:#2a2f3b;--acc:#6fd07c;--accbg:#18291b;--code:#0b0d12;--codet:#e6e9ef;--warn:#2b2412;--warnb:#e0a030}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:1rem}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1180px;margin:0 auto}
+nav{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:2rem 1.25rem;border-right:1px solid var(--line)}
+nav b{display:block;font-size:1.05rem;margin-bottom:1rem}
+nav a{display:block;color:var(--mute);text-decoration:none;padding:.22rem 0;font-size:.92rem}
+nav a:hover{color:var(--acc)}
+nav a.s{color:var(--text);font-weight:600;margin-top:.8rem}
+main{padding:2.5rem 2.5rem 5rem;max-width:860px}
+h1{font-size:2.1rem;line-height:1.2;margin:0 0 .5rem}
+.lead{color:var(--mute);margin:0 0 2rem}
+h2{font-size:1.6rem;margin:3.2rem 0 1rem;padding-top:1.4rem;border-top:2px solid var(--acc)}
+h3{font-size:1.2rem;margin:2.2rem 0 .6rem}
+h4{font-size:1.02rem;margin:1.6rem 0 .4rem}
+p,li{max-width:70ch}
+code{font:.88em ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;background:var(--accbg);padding:.1em .35em;border-radius:4px}
+pre{position:relative;background:var(--code);color:var(--codet);padding:1rem 1.1rem;border-radius:8px;overflow-x:auto;margin:.8rem 0;line-height:1.5}
+pre code{background:none;padding:0;color:inherit;font-size:.86rem}
+pre button{position:absolute;top:.45rem;right:.45rem;background:#2a303d;color:#c9cfdb;border:0;border-radius:5px;padding:.2rem .55rem;font-size:.75rem;cursor:pointer}
+pre button:hover,pre button:focus-visible{background:var(--acc);color:#fff;outline:none}
+.note,.warn{padding:.8rem 1rem;border-radius:8px;border-left:4px solid;margin:1rem 0}
+.note{background:var(--accbg);border-color:var(--acc)}
+.warn{background:var(--warn);border-color:var(--warnb)}
+.note>:first-child,.warn>:first-child{margin-top:0}
+.note>:last-child,.warn>:last-child{margin-bottom:0}
+table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:.5rem .7rem;text-align:left;vertical-align:top}
+th{background:var(--panel)}
+.tw{overflow-x:auto}
+ul,ol{padding-left:1.4rem}
+li{margin:.25rem 0}
+@media(max-width:860px){.wrap{display:block}nav{position:static;height:auto;border:0;border-bottom:1px solid var(--line)}main{padding:1.5rem 1.1rem 4rem}}
+@media print{nav,pre button{display:none}.wrap{display:block}pre{white-space:pre-wrap}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav aria-label="Contents">
+<b>Minecraft server on Arch</b>
+<a class="s" href="#step1">Step 1: Install Java</a>
+<a class="s" href="#step2">Step 2: Server folder and jar</a>
+<a class="s" href="#step3">Step 3: EULA and first run</a>
+<a class="s" href="#step4">Step 4: Configure it</a>
+<a class="s" href="#step5">Step 5: Start script and background</a>
+<a class="s" href="#step6">Step 6: Port forwarding</a>
+<a class="s" href="#step7">Step 7: Backups and updates</a>
+<a class="s" href="#trouble">Troubleshooting</a>
+</nav>
+<main>
+<h1>Minecraft Java Server on Arch Linux</h1>
+<p class="lead">Set up a vanilla Java Edition server, run it in the background, and let friends join from outside your network.</p>
+
+<h2 id="step1">Step 1: Install Java</h2>
+<p>The Java version you need depends on the Minecraft version, and Mojang changes it from time to time. At the time of writing:</p>
+<div class="tw"><table>
+<tr><th>Minecraft version</th><th>Java needed</th></tr>
+<tr><td>1.20.5 to 1.21.x</td><td>Java 21</td></tr>
+<tr><td>26.1 and newer (the new year-based versions)</td><td>Java 25</td></tr>
+</table></div>
+<p>Newer Java generally runs older Minecraft versions fine, so installing Java 25 covers both. Check the release notes for your version if you're unsure.</p>
+<h4>Install it</h4>
+<p>A server doesn't need a graphical Java, so install the <b>headless</b> package:</p>
+<pre><code>sudo pacman -Syu
+sudo pacman -S jre25-openjdk-headless</code></pre>
+<p>If that package name isn't found, list what's available and pick the right one:</p>
+<pre><code>pacman -Ss openjdk | grep headless</code></pre>
+<h4>Check it</h4>
+<pre><code>java -version</code></pre>
+<p>It should report version 25 (or 21). If you have several Java versions installed, see which is active and switch:</p>
+<pre><code>archlinux-java status
+sudo archlinux-java set java-25-openjdk</code></pre>
+
+<h2 id="step2">Step 2: Make the server folder and get the jar</h2>
+<p>Keep everything in one folder, since the world, config and logs all live next to the jar.</p>
+<pre><code>mkdir -p ~/minecraft-server
+cd ~/minecraft-server</code></pre>
+<h4>Download the server jar</h4>
+<p>The official jar comes from Mojang, and the link changes with every version, so copy it from the website:</p>
+<ol>
+<li>Open <code>https://www.minecraft.net/en-us/download/server</code> in a browser.</li>
+<li>Right-click the <code>minecraft_server.x.x.x.jar</code> link and choose <b>Copy link address</b>.</li>
+<li>Download it on the server, pasting your link between the quotes:</li>
+</ol>
+<pre><code>wget -O server.jar "PASTE_THE_LINK_HERE"</code></pre>
+<p>Naming it <code>server.jar</code> keeps your start script the same when you update later. Confirm it downloaded:</p>
+<pre><code>ls -lh server.jar</code></pre>
+<p>The file should be around 50 MB. If it's tiny, the link was wrong, so copy it again.</p>
+
+<h2 id="step3">Step 3: Accept the EULA and run it for the first time</h2>
+<h4>First run (this one fails on purpose)</h4>
+<pre><code>java -Xms2G -Xmx4G -jar server.jar nogui</code></pre>
+<p>It stops straight away and creates <code>eula.txt</code>. <code>-Xms</code> is the starting RAM and <code>-Xmx</code> is the maximum. <code>nogui</code> skips the graphical window.</p>
+<h4>Accept the EULA</h4>
+<p>By setting it to true you agree to Mojang's EULA (<code>https://aka.ms/MinecraftEULA</code>). Read it first.</p>
+<pre><code>sed -i 's/eula=false/eula=true/' eula.txt
+cat eula.txt</code></pre>
+<h4>Run it again</h4>
+<pre><code>java -Xms2G -Xmx4G -jar server.jar nogui</code></pre>
+<p>The first full start generates the world and takes a minute or two. When you see a line ending in <code>Done (x.xxxs)! For help, type "help"</code>, the server is up.</p>
+<h4>Join it locally</h4>
+<p>In Minecraft Java Edition (same version as the server), go to Multiplayer → Add Server and enter:</p>
+<ul>
+<li><code>localhost</code> if you play on the server itself.</li>
+<li>The server's local IP (like <code>192.168.1.50</code>) from another device on your network. Find it with <code>ip -4 a</code>.</li>
+</ul>
+<h4>Server console commands</h4>
+<p>Type these in the server's terminal (no slash needed):</p>
+<pre><code>op YourName       # make yourself an operator
+list              # show online players
+save-all          # force a world save
+stop              # shut down cleanly</code></pre>
+<p>Always use <code>stop</code> instead of closing the terminal or pressing Ctrl+C, or you risk losing recent progress.</p>
+
+<h2 id="step4">Step 4: Configure the server</h2>
+<p>Stop the server first, then edit the settings file:</p>
+<pre><code>nano ~/minecraft-server/server.properties</code></pre>
+<div class="tw"><table>
+<tr><th>Setting</th><th>What it does</th></tr>
+<tr><td><code>server-port=25565</code></td><td>The port the server listens on. Keep the default unless you have a reason.</td></tr>
+<tr><td><code>online-mode=true</code></td><td>Checks that players own the game. <b>Keep this on</b>.</td></tr>
+<tr><td><code>white-list=true</code></td><td>Only listed players can join. Add people with <code>whitelist add Name</code> in the console.</td></tr>
+<tr><td><code>max-players=10</code></td><td>Player limit.</td></tr>
+<tr><td><code>motd=My server</code></td><td>The text shown in the server list.</td></tr>
+<tr><td><code>difficulty=normal</code></td><td>peaceful, easy, normal or hard.</td></tr>
+<tr><td><code>gamemode=survival</code></td><td>The default mode for new players.</td></tr>
+<tr><td><code>view-distance=10</code></td><td>Chunks sent to each player. Lower it (6 to 8) if the server lags.</td></tr>
+<tr><td><code>simulation-distance=8</code></td><td>How far from players the world stays active. Also lowers lag.</td></tr>
+</table></div>
+<div class="warn"><p>Don't set <code>online-mode=false</code> on a server open to the internet. Anyone could join as any username, including yours.</p></div>
+<p>Changes only apply after a restart.</p>
+
+<h2 id="step5">Step 5: Start script and running in the background</h2>
+<h4>Create a start script</h4>
+<pre><code>nano ~/minecraft-server/start.sh</code></pre>
+<pre><code>#!/bin/bash
+cd "$(dirname "$0")"
+java -Xms4G -Xmx4G -jar server.jar nogui</code></pre>
+<pre><code>chmod +x ~/minecraft-server/start.sh</code></pre>
+<p>Setting <code>-Xms</code> and <code>-Xmx</code> to the same value avoids RAM resizing while playing. Never give it more RAM than the machine has free, or the system will start swapping. 4 GB is a good start for a small group.</p>
+<h4>Keep it running with tmux</h4>
+<p>If you start the server in a normal terminal, closing it stops the server. tmux keeps it alive in the background:</p>
+<pre><code>sudo pacman -S tmux
+tmux new -s minecraft
+~/minecraft-server/start.sh</code></pre>
+<ul>
+<li><b>Detach</b> (leave it running): press <code>Ctrl+B</code>, release, then press <code>D</code>.</li>
+<li><b>Reattach</b> later to use the console: <code>tmux attach -t minecraft</code></li>
+<li><b>Stop it properly</b>: reattach, then type <code>stop</code>.</li>
+</ul>
+
+<h2 id="step6">Step 6: Port forwarding</h2>
+<p>Minecraft Java Edition uses <b>TCP 25565</b>. UDP isn't needed.</p>
+<h4>1. Find the server's local IP</h4>
+<pre><code>ip -4 a</code></pre>
+<p>Find your active interface and its <code>inet</code> line, such as <code>inet 192.168.1.50/24</code>. The local IP is <code>192.168.1.50</code>. Ignore <code>127.0.0.1</code>.</p>
+<h4>2. Make the local IP permanent</h4>
+<p>If the server's IP changes after a reboot, the forward points at nothing. In the router settings, find <b>DHCP Reservation</b>, <b>Static DHCP</b> or <b>Address Reservation</b>, pick your server (or enter its MAC address from <code>ip link</code>), and assign it a fixed IP. Ethernet is much better than Wi-Fi for a server.</p>
+<h4>3. Open the router</h4>
+<pre><code>ip route | grep default</code></pre>
+<p>If it shows <code>default via 192.168.1.1</code>, open <code>http://192.168.1.1</code> in a browser and log in. The password is often on a sticker on the router.</p>
+<h4>4. Create the port forward</h4>
+<p>Look for <b>Port Forwarding</b>, <b>NAT</b>, <b>Virtual Server</b> or <b>Applications &amp; Gaming</b>, then add a rule:</p>
+<div class="tw"><table>
+<tr><th>Field</th><th>Value</th></tr>
+<tr><td>Name</td><td>Minecraft</td></tr>
+<tr><td>Protocol</td><td>TCP</td></tr>
+<tr><td>External / WAN port</td><td>25565</td></tr>
+<tr><td>Internal / LAN port</td><td>25565</td></tr>
+<tr><td>Internal IP</td><td>Your server's local IP (for example 192.168.1.50)</td></tr>
+<tr><td>Enabled</td><td>Yes</td></tr>
+</table></div>
+<p>Save and apply. Some routers need a reboot.</p>
+<h4>5. Server firewall</h4>
+<p>If you use <code>ufw</code> (otherwise skip):</p>
+<pre><code>sudo ufw allow 25565/tcp
+sudo ufw status</code></pre>
+<h4>6. Find your public IP and check for CGNAT</h4>
+<pre><code>curl ifconfig.me</code></pre>
+<p>Compare the result with the <b>WAN / Internet IP</b> on your router's status page.</p>
+<div class="warn"><p>If they differ, or the router shows an address starting <code>100.64.</code> to <code>100.127.</code>, <code>10.</code> or <code>192.168.</code>, your ISP uses <b>CGNAT</b> and port forwarding cannot work. Ask the ISP for a public IP, or use a tunnel such as <b>Tailscale</b> (everyone who joins needs it installed).</p></div>
+<h4>7. Test it</h4>
+<p>Ask a friend outside your network to add your <b>public IP</b> as a server in Minecraft. Because 25565 is the default port, they don't need to type it. Testing from inside your own network often fails even when the setup is correct, so use the local IP from home. An online "Minecraft server status" checker also works.</p>
+<h4>When your public IP changes</h4>
+<p>Most home connections have a dynamic IP, so the address you gave friends can stop working. A Dynamic DNS service such as <b>DuckDNS</b> (free) gives you a fixed name like <code>myserver.duckdns.org</code> that follows your IP.</p>
+<div class="note"><p>Running Jellyfin on the same machine is fine. They use different ports (8096 and 25565), each with its own forward.</p></div>
+
+<h2 id="step7">Step 7: Backups and updates</h2>
+<h4>Back up the world</h4>
+<p>Stop the server first (<code>stop</code> in the console), then:</p>
+<pre><code>tar -czf ~/mc-backup-$(date +%F).tar.gz -C ~ minecraft-server</code></pre>
+<p>Copy the archive to another drive, since a backup on the same disk won't survive a disk failure.</p>
+<h4>Update the server</h4>
+<ol>
+<li>Run <code>stop</code> and make a backup as above.</li>
+<li>Check which Java version the new Minecraft version needs and install it if it's different.</li>
+<li>Download the new jar over the old one:
+<pre><code>cd ~/minecraft-server
+wget -O server.jar "PASTE_THE_NEW_LINK_HERE"</code></pre></li>
+<li>Start the server. It upgrades the world automatically.</li>
+</ol>
+<div class="warn"><p>Worlds can't be downgraded. If an update goes wrong, restore from your backup.</p></div>
+
+<h3 id="trouble">Troubleshooting</h3>
+<div class="tw"><table>
+<tr><th>Problem</th><th>Likely cause</th></tr>
+<tr><td><code>Unsupported class file major version</code></td><td>Java is too old for this Minecraft version. Install the newer Java from Step 1.</td></tr>
+<tr><td>Server stops right after starting</td><td><code>eula.txt</code> still says <code>eula=false</code></td></tr>
+<tr><td><code>Failed to bind to port</code></td><td>Another program (or a second copy of the server) is using 25565</td></tr>
+<tr><td>Works locally, not from outside</td><td>Missing or wrong port forward, firewall, or CGNAT</td></tr>
+<tr><td>Worked yesterday, not today</td><td>Local IP changed or public IP changed</td></tr>
+<tr><td>"Outdated client" or "outdated server"</td><td>Player and server are on different Minecraft versions</td></tr>
+<tr><td>Lag or "Can't keep up!" in the log</td><td>Too little RAM, or view/simulation distance too high</td></tr>
+<tr><td>Server killed with no error</td><td>The system ran out of RAM. Lower <code>-Xmx</code> or close other programs.</td></tr>
+</table></div>
+</main>
+</div>
+<script>
+document.querySelectorAll('pre').forEach(function(p){
+  var b=document.createElement('button');
+  b.type='button';b.textContent='Copy';
+  b.addEventListener('click',function(){
+    var t=p.querySelector('code').innerText;
+    var done=function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1400)};
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(done)}
+    else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done()}
+  });
+  p.appendChild(b);
+});
+</script>
+</body>
+</html>
