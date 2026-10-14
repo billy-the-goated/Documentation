@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arch Linux with archinstall and i3</title>
+<style>
+:root{--bg:#fafaf9;--panel:#fff;--text:#1d2330;--mute:#5d6676;--line:#e3e5ea;--acc:#1578b3;--accbg:#e8f3fa;--code:#14181f;--codet:#e6e9ef;--warn:#fff4e0;--warnb:#d98a00}
+@media(prefers-color-scheme:dark){:root{--bg:#12151c;--panel:#181c25;--text:#e4e7ee;--mute:#9aa3b5;--line:#2a2f3b;--acc:#4db8f0;--accbg:#14283a;--code:#0b0d12;--codet:#e6e9ef;--warn:#2b2412;--warnb:#e0a030}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:1rem}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1180px;margin:0 auto}
+nav{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:2rem 1.25rem;border-right:1px solid var(--line)}
+nav b{display:block;font-size:1.05rem;margin-bottom:1rem}
+nav a{display:block;color:var(--mute);text-decoration:none;padding:.22rem 0;font-size:.92rem}
+nav a:hover{color:var(--acc)}
+nav a.s{color:var(--text);font-weight:600;margin-top:.8rem}
+main{padding:2.5rem 2.5rem 5rem;max-width:860px}
+h1{font-size:2.1rem;line-height:1.2;margin:0 0 .5rem}
+.lead{color:var(--mute);margin:0 0 2rem}
+h2{font-size:1.6rem;margin:3.2rem 0 1rem;padding-top:1.4rem;border-top:2px solid var(--acc)}
+h3{font-size:1.2rem;margin:2.2rem 0 .6rem}
+h4{font-size:1.02rem;margin:1.6rem 0 .4rem}
+p,li{max-width:70ch}
+code{font:.88em ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;background:var(--accbg);padding:.1em .35em;border-radius:4px}
+pre{position:relative;background:var(--code);color:var(--codet);padding:1rem 1.1rem;border-radius:8px;overflow-x:auto;margin:.8rem 0;line-height:1.5}
+pre code{background:none;padding:0;color:inherit;font-size:.86rem}
+pre button{position:absolute;top:.45rem;right:.45rem;background:#2a303d;color:#c9cfdb;border:0;border-radius:5px;padding:.2rem .55rem;font-size:.75rem;cursor:pointer}
+pre button:hover,pre button:focus-visible{background:var(--acc);color:#fff;outline:none}
+.note,.warn{padding:.8rem 1rem;border-radius:8px;border-left:4px solid;margin:1rem 0}
+.note{background:var(--accbg);border-color:var(--acc)}
+.warn{background:var(--warn);border-color:var(--warnb)}
+.note>:first-child,.warn>:first-child{margin-top:0}
+.note>:last-child,.warn>:last-child{margin-bottom:0}
+table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.93rem}
+th,td{border:1px solid var(--line);padding:.5rem .7rem;text-align:left;vertical-align:top}
+th{background:var(--panel)}
+.tw{overflow-x:auto}
+ul,ol{padding-left:1.4rem}
+li{margin:.25rem 0}
+@media(max-width:860px){.wrap{display:block}nav{position:static;height:auto;border:0;border-bottom:1px solid var(--line)}main{padding:1.5rem 1.1rem 4rem}}
+@media print{nav,pre button{display:none}.wrap{display:block}pre{white-space:pre-wrap}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav aria-label="Contents">
+<b>Arch + i3 setup</b>
+<a class="s" href="#step1">Step 1: Install with archinstall</a>
+<a class="s" href="#step2">Step 2: First boot</a>
+<a class="s" href="#step3">Step 3: Install i3 and dmenu</a>
+<a class="s" href="#step4">Step 4: Ly login manager</a>
+<a class="s" href="#step5">Step 5: First login and config</a>
+<a class="s" href="#step6">Step 6: Audio and the aux port</a>
+<a class="s" href="#step7">Step 7: Wallpaper with feh</a>
+<a class="s" href="#step8">Step 8: Brightness keys</a>
+<a class="s" href="#step9">Step 9: Install yay</a>
+<a class="s" href="#trouble">Troubleshooting</a>
+</nav>
+<main>
+<h1>Arch Linux with archinstall and i3</h1>
+<p class="lead">A minimal install, then a lightweight i3 desktop with sound, wallpaper, brightness keys, a login screen, and the AUR.</p>
+
+<h2 id="step1">Step 1: Install Arch with archinstall</h2>
+<h4>Make the install USB</h4>
+<p>Download the ISO from <code>https://archlinux.org/download</code> and check its checksum against the one on that page:</p>
+<pre><code>sha256sum archlinux-x86_64.iso</code></pre>
+<p>Find your USB stick, then write the ISO to it.</p>
+<pre><code>lsblk
+sudo dd if=archlinux-x86_64.iso of=/dev/sdX bs=4M status=progress oflag=sync</code></pre>
+<div class="warn"><p>Replace <code>/dev/sdX</code> with the whole USB device (like <code>/dev/sdb</code>, not <code>sdb1</code>). The wrong device means erasing the wrong disk.</p></div>
+<h4>Boot it and get online</h4>
+<p>Boot from the USB (usually F12, F2 or Esc at power-on). You land in a root shell. Check that you booted in UEFI mode (the command should list files):</p>
+<pre><code>ls /sys/firmware/efi</code></pre>
+<p>Ethernet connects by itself. For Wi-Fi:</p>
+<pre><code>iwctl
+station wlan0 scan
+station wlan0 get-networks
+station wlan0 connect "YourNetworkName"
+exit
+ping -c 3 archlinux.org</code></pre>
+<h4>Run archinstall</h4>
+<pre><code>archinstall</code></pre>
+<p>Go through the menu. Move with the arrow keys, pick with Enter. The options can sit in slightly different places between versions.</p>
+<div class="tw"><table>
+<tr><th>Menu item</th><th>What to choose</th></tr>
+<tr><td>Locales</td><td>Keyboard layout, language, and encoding</td></tr>
+<tr><td>Mirrors</td><td>Your region, for faster downloads</td></tr>
+<tr><td>Disk configuration</td><td>"Use a best-effort default partition layout", then pick the drive. ext4 is the simple choice. <b>This wipes the drive.</b></td></tr>
+<tr><td>Bootloader</td><td>systemd-boot or GRUB. Either works on UEFI.</td></tr>
+<tr><td>Hostname</td><td>Anything you like</td></tr>
+<tr><td>Root password</td><td>Set one</td></tr>
+<tr><td>User account</td><td>Add a user and answer <b>yes</b> to sudo (superuser). You'll use this account daily.</td></tr>
+<tr><td>Profile → Type</td><td><b>Minimal</b>. This installs no desktop, which is what you want.</td></tr>
+<tr><td>Audio</td><td><b>pipewire</b> (it may be under Applications in newer versions)</td></tr>
+<tr><td>Network configuration</td><td><b>Use NetworkManager</b>. This gives you <code>nmtui</code> for Wi-Fi later.</td></tr>
+<tr><td>Additional packages</td><td>Optional but handy: <code>git base-devel nano</code>. You need git and base-devel for yay in Step 9.</td></tr>
+<tr><td>Timezone</td><td>Your timezone</td></tr>
+<tr><td>Automatic time sync</td><td>On</td></tr>
+</table></div>
+<p>Select <b>Install</b>. When it finishes, answer <b>No</b> to "chroot into the new installation", then reboot and unplug the USB:</p>
+<pre><code>reboot</code></pre>
+
+<h2 id="step2">Step 2: First boot</h2>
+<p>You get a text login. Log in as the user you created (not root). Check the network:</p>
+<pre><code>ping -c 3 archlinux.org</code></pre>
+<p>If you're on Wi-Fi, connect with the text interface:</p>
+<pre><code>nmtui</code></pre>
+<p>Choose "Activate a connection", pick your network, and enter the password. Then update everything:</p>
+<pre><code>sudo pacman -Syu</code></pre>
+<p>If you skipped adding extras in archinstall, install them now:</p>
+<pre><code>sudo pacman -S --needed git base-devel nano</code></pre>
+
+<h2 id="step3">Step 3: Install i3, dmenu and their dependencies</h2>
+<p>A minimal install has no graphical system, so you need the display server (Xorg), the window manager, the launcher, a terminal and fonts.</p>
+<pre><code>sudo pacman -S xorg-server xorg-xinit xorg-xrandr xorg-xev i3-wm i3status i3lock dmenu xterm ttf-dejavu</code></pre>
+<ul>
+<li><code>xorg-server</code> and <code>xorg-xinit</code> are the display server and <code>startx</code>.</li>
+<li><code>xorg-xrandr</code> sets screen resolution and monitors. <code>xorg-xev</code> shows key names (used in Step 8).</li>
+<li><code>i3-wm</code> is the window manager. <code>i3status</code> is the status bar content. <code>i3lock</code> locks the screen.</li>
+<li><code>dmenu</code> is the app launcher. Pacman pulls in its library dependencies automatically.</li>
+<li><code>xterm</code> is a small terminal (swap for <code>alacritty</code> or <code>kitty</code> if you prefer). <code>ttf-dejavu</code> gives you readable fonts.</li>
+</ul>
+<h4>Graphics drivers</h4>
+<p>The Minimal profile doesn't install them, so add the right one for your hardware:</p>
+<div class="tw"><table>
+<tr><th>Graphics</th><th>Install</th></tr>
+<tr><td>Intel or AMD</td><td><code>sudo pacman -S mesa</code></td></tr>
+<tr><td>NVIDIA</td><td><code>sudo pacman -S nvidia-open nvidia-utils</code> (older cards: see the Arch wiki NVIDIA page)</td></tr>
+</table></div>
+
+<h2 id="step4">Step 4: Install Ly and enable ly@tty2</h2>
+<p>Ly is a small text-mode login screen. It starts i3 for you, so you never need <code>startx</code>. It needs the i3 session and graphics driver from Step 3, so do that step first.</p>
+<pre><code>sudo pacman -S ly</code></pre>
+<p>Ly runs on tty2, so turn off the normal login on that terminal and enable Ly there:</p>
+<pre><code>sudo systemctl disable getty@tty2.service
+sudo systemctl enable ly@tty2.service</code></pre>
+<p>Reboot:</p>
+<pre><code>reboot</code></pre>
+<p>At the Ly screen, press the <b>left/right arrow keys</b> to choose the <b>i3</b> session, enter your username and password, and press Enter. The i3 session entry comes with the <code>i3-wm</code> package. The first time i3 starts, it asks to create a config, which Step 5 covers. Settings live in <code>/etc/ly/config.ini</code>.</p>
+<div class="note"><p>If Ly doesn't appear, you can still get a text login on tty1 with <code>Ctrl+Alt+F1</code>. Then check the service with <code>systemctl status ly@tty2.service</code>.</p></div>
+<p>To go back to a plain text login on tty2 later, reverse it:</p>
+<pre><code>sudo systemctl disable ly@tty2.service
+sudo systemctl enable getty@tty2.service</code></pre>
+
+<h2 id="step5">Step 5: First login and the i3 config</h2>
+<p>Log in through Ly with the <b>i3</b> session selected (Step 4). On the first launch i3 asks to create a config. Press <b>Enter</b> to generate it, then pick your modifier key: <b>Win</b> (Super) is the usual choice. The config lives at:</p>
+<pre><code>~/.config/i3/config</code></pre>
+<p>If the wizard doesn't appear, copy the default instead:</p>
+<pre><code>mkdir -p ~/.config/i3
+cp /etc/i3/config ~/.config/i3/config</code></pre>
+<h4>Basic keys</h4>
+<p>With Win as the modifier (<code>$mod</code>):</p>
+<ul>
+<li><code>$mod+Enter</code> opens a terminal.</li>
+<li><code>$mod+d</code> opens dmenu to launch apps.</li>
+<li><code>$mod+Shift+q</code> closes the focused window.</li>
+<li><code>$mod+1</code> to <code>$mod+9</code> switch workspaces. <code>$mod+Shift+1</code> to <code>9</code> move a window there.</li>
+<li><code>$mod+Shift+r</code> reloads the config. <code>$mod+Shift+e</code> exits i3.</li>
+</ul>
+<p>Edit the config from an i3 terminal with <code>nano ~/.config/i3/config</code>, save, then press <code>$mod+Shift+r</code>. To pick the modifier by hand, find this line (<code>Mod4</code> is Win, <code>Mod1</code> is Alt):</p>
+<pre><code>set $mod Mod4</code></pre>
+<div class="note"><p>The default config starts a few extra programs (<code>dex</code>, <code>xss-lock</code>, <code>nm-applet</code>) that a minimal install doesn't have. They cause harmless errors. Either put a <code>#</code> in front of those <code>exec</code> lines, or install them with <code>sudo pacman -S dex xss-lock network-manager-applet</code>.</p></div>
+<h4>Leave i3 safely</h4>
+<p>Press <code>$mod+Shift+e</code> and confirm. You return to the text login.</p>
+
+<h2 id="step6">Step 6: Audio and the aux (headphone) port</h2>
+<h4>Install the audio stack</h4>
+<p>If you picked pipewire in archinstall, most of this is installed already. Running it again is harmless:</p>
+<pre><code>sudo pacman -S --needed pipewire pipewire-pulse pipewire-alsa wireplumber alsa-utils pavucontrol</code></pre>
+<p>Make sure the audio services start for your user:</p>
+<pre><code>systemctl --user enable --now pipewire.socket pipewire-pulse.socket wireplumber.service</code></pre>
+<h4>Check that a sound card exists</h4>
+<pre><code>wpctl status</code></pre>
+<p>You should see your card under "Audio → Sinks". If nothing shows up, install the firmware that newer laptops need, then reboot:</p>
+<pre><code>sudo pacman -S sof-firmware
+reboot</code></pre>
+<h4>Unmute the channels</h4>
+<p>ALSA channels are often muted by default. Open the mixer:</p>
+<pre><code>alsamixer</code></pre>
+<p>Press <b>F6</b> to pick your sound card. A channel showing <b>MM</b> is muted, so select it and press <b>M</b> to unmute it (it changes to <b>00</b>). Check <b>Master</b>, <b>Headphone</b> and <b>Speaker</b>. Raise volumes with the up arrow. Then save the state so it survives a reboot:</p>
+<pre><code>sudo alsactl store</code></pre>
+<h4>Test sound</h4>
+<pre><code>speaker-test -c 2 -t wav</code></pre>
+<p>Press Ctrl+C to stop. You should hear a voice alternate between left and right.</p>
+<h4>Make the aux port work with an exec command</h4>
+<p>Plug in headphones (or a speaker on the 3.5 mm jack) and list the output ports:</p>
+<pre><code>pactl list sinks | grep -E "Name:|Active Port|analog-output"</code></pre>
+<p>You'll see port names like <code>analog-output-speaker</code> and <code>analog-output-headphones</code>. Test switching by hand:</p>
+<pre><code>pactl set-sink-port @DEFAULT_SINK@ analog-output-headphones</code></pre>
+<p>If that works, make i3 run it at every start. Add these lines to <code>~/.config/i3/config</code>:</p>
+<pre><code># Audio: unmute and use the aux/headphone port
+exec --no-startup-id amixer sset Master unmute
+exec --no-startup-id amixer sset Headphone unmute
+exec --no-startup-id pactl set-sink-port @DEFAULT_SINK@ analog-output-headphones</code></pre>
+<div class="note"><p>WirePlumber normally switches to the headphone port by itself when you plug in. The <code>pactl</code> line is only needed if yours doesn't. If you force it, the laptop speakers stay silent even when the headphones are unplugged. Delete that line if you'd rather it switch automatically. If a mixer control name (like <code>Headphone</code>) doesn't exist on your hardware, that line just fails without harm.</p></div>
+<h4>Volume keys</h4>
+<p>Add these so the keyboard volume keys work (replace any existing <code>XF86Audio</code> lines):</p>
+<pre><code>bindsym XF86AudioRaiseVolume exec --no-startup-id wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+
+bindsym XF86AudioLowerVolume exec --no-startup-id wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-
+bindsym XF86AudioMute exec --no-startup-id wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle</code></pre>
+<p>Reload with <code>$mod+Shift+r</code>. <code>pavucontrol</code> gives you a graphical mixer if you want to check which output is selected.</p>
+
+<h2 id="step7">Step 7: Set a wallpaper with feh</h2>
+<pre><code>sudo pacman -S feh</code></pre>
+<p>Put an image somewhere permanent, such as <code>~/Pictures/wallpaper.jpg</code>:</p>
+<pre><code>mkdir -p ~/Pictures</code></pre>
+<p>Test it from a terminal inside i3:</p>
+<pre><code>feh --bg-fill ~/Pictures/wallpaper.jpg</code></pre>
+<p>Then make i3 set it at every start by adding this to <code>~/.config/i3/config</code>:</p>
+<pre><code>exec --no-startup-id feh --bg-fill ~/Pictures/wallpaper.jpg</code></pre>
+<p><code>--bg-fill</code> scales the image to fill the screen and crops the overflow. Other modes are <code>--bg-center</code>, <code>--bg-scale</code> (stretches), <code>--bg-max</code> (fits with borders) and <code>--bg-tile</code>. Use <code>exec_always</code> instead of <code>exec</code> if you want the wallpaper to be reapplied every time you reload the config, not just at login.</p>
+
+<h2 id="step8">Step 8: Brightness keys with brightnessctl</h2>
+<pre><code>sudo pacman -S brightnessctl</code></pre>
+<h4>Give your user permission</h4>
+<p>Without this you get permission errors. Add yourself to the <code>video</code> group, then log out of i3 (<code>$mod+Shift+e</code>) and log back in through Ly:</p>
+<pre><code>sudo usermod -aG video $USER</code></pre>
+<h4>Test it</h4>
+<pre><code>brightnessctl info
+brightnessctl set 10%+
+brightnessctl set 10%-</code></pre>
+<h4>Bind it to your keys</h4>
+<p>Add these to <code>~/.config/i3/config</code>:</p>
+<pre><code>bindsym XF86MonBrightnessUp exec --no-startup-id brightnessctl set 5%+
+bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 5%-</code></pre>
+<p>Reload with <code>$mod+Shift+r</code>. If pressing the keys does nothing, find out what your keyboard sends. Run <code>xev -event keyboard</code>, press the key, and look for the <code>XF86...</code> name in the output (Ctrl+C to quit). Then use that name in <code>bindsym</code>. If your keyboard has no brightness keys, bind regular ones:</p>
+<pre><code>bindsym $mod+F6 exec --no-startup-id brightnessctl set 5%-
+bindsym $mod+F7 exec --no-startup-id brightnessctl set 5%+</code></pre>
+<div class="note"><p>On some panels, brightness at 0% turns the screen fully black. If that happens, press the up key to bring it back.</p></div>
+
+<h2 id="step9">Step 9: Install yay (AUR helper)</h2>
+<p>yay installs packages from the Arch User Repository (AUR), which pacman can't reach. It needs <code>git</code> and <code>base-devel</code> (skip this line if you added them earlier):</p>
+<pre><code>sudo pacman -S --needed git base-devel</code></pre>
+<p>Build and install it. <b>Do not run this as root or with sudo</b>, because makepkg refuses to.</p>
+<pre><code>git clone https://aur.archlinux.org/yay.git ~/yay
+cd ~/yay
+makepkg -si</code></pre>
+<p>If you'd rather not compile it, <code>yay-bin</code> from the same site installs faster. Use the same three commands with <code>yay-bin.git</code>. Check it worked and clean up:</p>
+<pre><code>yay --version
+cd ~
+rm -rf ~/yay</code></pre>
+<h4>Everyday use</h4>
+<pre><code>yay -S package-name    # install from the repos or AUR
+yay -Syu               # update everything, AUR included
+yay -Ss search-term    # search
+yay -Rns package-name  # remove a package and its unused dependencies</code></pre>
+<div class="warn"><p>AUR packages are written by users, not checked by the Arch team. Read the PKGBUILD when yay offers to show it, and only install packages you trust.</p></div>
+
+<h3 id="trouble">Troubleshooting</h3>
+<div class="tw"><table>
+<tr><th>Problem</th><th>Likely cause</th></tr>
+<tr><td>Black screen or "no screens found" when i3 starts</td><td>Missing graphics driver (Step 3). Check <code>~/.local/share/xorg/Xorg.0.log</code>.</td></tr>
+<tr><td>No sound at all</td><td>Muted in <code>alsamixer</code>, or missing <code>sof-firmware</code>. Also check <code>wpctl status</code> to see if a sink exists.</td></tr>
+<tr><td>Sound from speakers but not the aux port</td><td>Wrong sink port. Run the <code>pactl list sinks</code> command in Step 6 and use the port name it shows.</td></tr>
+<tr><td>Sound is fine in the terminal but exec lines do nothing</td><td>Reload i3 with <code>$mod+Shift+r</code>. Exec lines run once at login, not on reload (unless you use <code>exec_always</code>).</td></tr>
+<tr><td>Wallpaper is black</td><td>Wrong image path in the config, or the file isn't readable. Run the feh command by hand to see the error.</td></tr>
+<tr><td><code>brightnessctl</code> says permission denied</td><td>Not in the <code>video</code> group, or you haven't logged out and back in since adding yourself</td></tr>
+<tr><td>Brightness keys do nothing</td><td>Your keyboard sends a different key name. Check with <code>xev -event keyboard</code>.</td></tr>
+<tr><td>Want to test i3 without Ly</td><td>Log in on tty1 (<code>Ctrl+Alt+F1</code>), then run <code>echo "exec i3" &gt; ~/.xinitrc</code> and <code>startx</code></td></tr>
+<tr><td>Ly doesn't show up after reboot</td><td>The service isn't enabled, or <code>getty@tty2</code> is still running. Check <code>systemctl status ly@tty2.service</code>.</td></tr>
+<tr><td><code>makepkg</code> says it can't run as root</td><td>Run it as your normal user, without sudo</td></tr>
+<tr><td>No Wi-Fi after install</td><td>NetworkManager wasn't selected in archinstall. Run <code>sudo pacman -S networkmanager</code> and <code>sudo systemctl enable --now NetworkManager</code>.</td></tr>
+</table></div>
+</main>
+</div>
+<script>
+document.querySelectorAll('pre').forEach(function(p){
+  var b=document.createElement('button');
+  b.type='button';b.textContent='Copy';
+  b.addEventListener('click',function(){
+    var t=p.querySelector('code').innerText;
+    var done=function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1400)};
+    if(navigator.clipboard){navigator.clipboard.writeText(t).then(done)}
+    else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done()}
+  });
+  p.appendChild(b);
+});
+</script>
+</body>
+</html>
