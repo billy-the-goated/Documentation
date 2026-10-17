@@ -3,345 +3,94 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jellyfin on Arch Linux</title>
+<title>Home Lab Guides</title>
 <style>
-:root{--bg:#fafaf9;--panel:#fff;--text:#1d2330;--mute:#5d6676;--line:#e3e5ea;--acc:#5b4bd6;--accbg:#efedfc;--code:#14181f;--codet:#e6e9ef;--warn:#fff4e0;--warnb:#d98a00;--ok:#e8f6ee;--okb:#1f8a4c}
-@media(prefers-color-scheme:dark){:root{--bg:#12151c;--panel:#181c25;--text:#e4e7ee;--mute:#9aa3b5;--line:#2a2f3b;--acc:#a99cff;--accbg:#232042;--code:#0b0d12;--codet:#e6e9ef;--warn:#2b2412;--warnb:#e0a030;--ok:#14281c;--okb:#4cc080}}
+:root{--bg:#fafaf9;--panel:#fff;--text:#1d2330;--mute:#5d6676;--line:#e3e5ea;--arch:#1578b3;--jf:#5b4bd6;--mc:#2f7d3a;--archbg:#e8f3fa;--jfbg:#efedfc;--mcbg:#e9f5ea}
+@media(prefers-color-scheme:dark){:root{--bg:#12151c;--panel:#181c25;--text:#e4e7ee;--mute:#9aa3b5;--line:#2a2f3b;--arch:#4db8f0;--jf:#a99cff;--mc:#6fd07c;--archbg:#14283a;--jfbg:#232042;--mcbg:#18291b}}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:1rem}
 body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1180px;margin:0 auto}
-nav{position:sticky;top:0;align-self:start;height:100vh;overflow:auto;padding:2rem 1.25rem;border-right:1px solid var(--line)}
-nav b{display:block;font-size:1.05rem;margin-bottom:1rem}
-nav a{display:block;color:var(--mute);text-decoration:none;padding:.22rem 0;font-size:.92rem}
-nav a:hover{color:var(--acc)}
-nav a.s{color:var(--text);font-weight:600;margin-top:.8rem}
-nav a.sub{padding-left:.9rem}
-main{padding:2.5rem 2.5rem 5rem;max-width:860px}
-h1{font-size:2.1rem;line-height:1.2;margin:0 0 .5rem}
-.lead{color:var(--mute);margin:0 0 2rem}
-h2{font-size:1.6rem;margin:3.2rem 0 1rem;padding-top:1.4rem;border-top:2px solid var(--acc)}
-h3{font-size:1.2rem;margin:2.2rem 0 .6rem}
-h4{font-size:1.02rem;margin:1.6rem 0 .4rem}
-p,li{max-width:70ch}
-code{font:.88em ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;background:var(--accbg);padding:.1em .35em;border-radius:4px}
-pre{position:relative;background:var(--code);color:var(--codet);padding:1rem 1.1rem;border-radius:8px;overflow-x:auto;margin:.8rem 0;line-height:1.5}
-pre code{background:none;padding:0;color:inherit;font-size:.86rem}
-pre button{position:absolute;top:.45rem;right:.45rem;background:#2a303d;color:#c9cfdb;border:0;border-radius:5px;padding:.2rem .55rem;font-size:.75rem;cursor:pointer}
-pre button:hover,pre button:focus-visible{background:var(--acc);color:#fff;outline:none}
-.note,.warn,.ok{padding:.8rem 1rem;border-radius:8px;border-left:4px solid;margin:1rem 0}
-.note{background:var(--accbg);border-color:var(--acc)}
-.warn{background:var(--warn);border-color:var(--warnb)}
-.ok{background:var(--ok);border-color:var(--okb)}
-.note>:first-child,.warn>:first-child,.ok>:first-child{margin-top:0}
-.note>:last-child,.warn>:last-child,.ok>:last-child{margin-bottom:0}
-table{border-collapse:collapse;width:100%;margin:1rem 0;font-size:.93rem}
-th,td{border:1px solid var(--line);padding:.5rem .7rem;text-align:left;vertical-align:top}
-th{background:var(--panel)}
-.tw{overflow-x:auto}
-ul,ol{padding-left:1.4rem}
-li{margin:.25rem 0}
-@media(max-width:860px){.wrap{display:block}nav{position:static;height:auto;border:0;border-bottom:1px solid var(--line)}main{padding:1.5rem 1.1rem 4rem}}
-@media print{nav,pre button{display:none}.wrap{display:block}pre{white-space:pre-wrap}}
+.page{max-width:980px;margin:0 auto;padding:4rem 1.5rem 4rem}
+h1{font-size:2.4rem;line-height:1.15;margin:0 0 .6rem}
+.lead{color:var(--mute);font-size:1.1rem;max-width:60ch;margin:0 0 2.8rem}
+h2{font-size:1.25rem;margin:3rem 0 1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem}
+.card{display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:12px;padding:1.4rem 1.4rem 1.2rem;text-decoration:none;color:inherit;transition:transform .15s,box-shadow .15s}
+.card:hover,.card:focus-visible{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.12);outline:none}
+.card:focus-visible{outline:3px solid var(--c);outline-offset:2px}
+.card h3{margin:0 0 .4rem;font-size:1.3rem}
+.card p{margin:0 0 1rem;color:var(--mute);font-size:.96rem}
+.card ul{margin:0 0 1.2rem;padding-left:1.15rem;font-size:.92rem}
+.card li{margin:.15rem 0}
+.go{margin-top:auto;font-weight:600;color:var(--c)}
+.go::after{content:" \2192"}
+.arch{--c:var(--arch)}.jf{--c:var(--jf)}.mc{--c:var(--mc)}
+.tag{display:inline-block;font-size:.78rem;font-weight:600;color:var(--c);background:var(--cb);border-radius:99px;padding:.1rem .65rem;margin-bottom:.8rem;align-self:flex-start}
+.arch .tag{--cb:var(--archbg)}.jf .tag{--cb:var(--jfbg)}.mc .tag{--cb:var(--mcbg)}
+ol.path{padding-left:1.3rem;max-width:62ch}
+ol.path li{margin:.4rem 0}
+ol.path a{color:var(--text);font-weight:600}
+.note{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:.9rem 1.1rem;color:var(--mute);font-size:.93rem;max-width:62ch}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--line);padding:.1em .35em;border-radius:4px}
+footer{margin-top:3.5rem;color:var(--mute);font-size:.88rem}
 </style>
 </head>
 <body>
-<div class="wrap">
-<nav aria-label="Contents">
-<b>Jellyfin on Arch</b>
-<a class="s" href="#step1">Step 1: Install and log in</a>
-<a class="s" href="#step2">Step 2: External drive</a>
-<a class="sub" href="#precheck">Is the drive already ext4?</a>
-<a class="sub" href="#s21">2.1 One drive</a>
-<a class="sub" href="#s22">2.2 Several drives (mergerfs)</a>
-<a class="sub" href="#s23">2.3 Backups</a>
-<a class="s" href="#step3">Step 3: Port forwarding</a>
-<a class="sub" href="#s31">Local IP</a>
-<a class="sub" href="#s34">Router rule</a>
-<a class="sub" href="#s36">Public IP and CGNAT</a>
-<a class="sub" href="#s39">Security</a>
-<a class="sub" href="#trouble">Troubleshooting</a>
-</nav>
-<main>
-<h1>Jellyfin on Arch Linux</h1>
-<p class="lead">Install the server, connect your drives, and reach it from outside your home network.</p>
+<div class="page">
+<h1>Home Lab Guides</h1>
+<p class="lead">Step-by-step guides for building an Arch Linux machine and running your own servers on it. Pick a guide, or follow the suggested order below.</p>
 
-<h2 id="step1">Step 1: Install Jellyfin, start it, and log in on localhost</h2>
-<h4>Update, then install</h4>
-<p>Jellyfin is in the official repos. You need the server, the web client, and <code>jellyfin-ffmpeg</code> for transcoding.</p>
-<pre><code>sudo pacman -Syu
-sudo pacman -S jellyfin-server jellyfin-web jellyfin-ffmpeg</code></pre>
-<h4>Start it and enable it on boot</h4>
-<pre><code>sudo systemctl enable --now jellyfin
-systemctl status jellyfin</code></pre>
-<p>You should see <code>active (running)</code>. If not, read the logs with <code>journalctl -u jellyfin -e</code>.</p>
-<h4>Open it on localhost</h4>
-<p>In a browser on the server, go to <code>http://localhost:8096</code>.</p>
-<h4>First-time setup wizard</h4>
-<ol>
-<li>Pick your display language.</li>
-<li>Create your admin username and a strong password.</li>
-<li>Skip adding a library for now (Step 2 covers it).</li>
-<li>Choose the metadata language and country.</li>
-<li>Keep "Allow remote connections to this server" ticked. You need it for Step 3.</li>
-<li>Finish and log in.</li>
-</ol>
-<h4>Test from another device (optional)</h4>
-<pre><code>ip a</code></pre>
-<p>Find your <code>192.168.x.x</code> address, then open <code>http://192.168.x.x:8096</code> from another device on the same network. If it doesn't load and you use <code>ufw</code>:</p>
-<pre><code>sudo ufw allow 8096/tcp</code></pre>
-
-<h2 id="step2">Step 2: Point Jellyfin at an external drive</h2>
-
-<h3 id="precheck">Before you start: is your drive already ext4?</h3>
-<p>Plug the drive in and check its filesystem:</p>
-<pre><code>lsblk -f</code></pre>
-<p>Look at the <code>FSTYPE</code> column for your partition (for example <code>sdb1</code>).</p>
-
-<h4>Already ext4, with data you want to keep</h4>
-<div class="warn"><p><b>Do not format it.</b> Formatting erases everything. Skip the format step in 2.1.</p></div>
-<ol>
-<li>Note the partition name and its UUID from <code>lsblk -f</code>.</li>
-<li>Go to "Get the drive's UUID" in 2.1, then mount it and add it to fstab.</li>
-<li>Fix ownership so Jellyfin can read your existing files (this can take a few minutes on a big drive):
-<pre><code>sudo chown -R jellyfin:jellyfin /mnt/media</code></pre></li>
-<li>Optional: add a label. This doesn't touch your data and the UUID stays the same.
-<pre><code>sudo e2label /dev/sdb1 media</code></pre></li>
-<li>Check your folders against the layout in "Organise your files". Other structures still work as libraries, but this one matches best.</li>
-</ol>
-<h4>ext4, but you want to start fresh</h4>
-<p>Format it as shown in 2.1. Back up anything you need first.</p>
-<h4>Blank, or NTFS / exFAT / FAT32</h4>
-<p>Follow 2.1 from the top, including the format step. ext4 is strongly recommended because it handles Linux permissions properly. Copy any files you want to keep to another disk first.</p>
-
-<h3 id="s21">2.1 One drive</h3>
-<h4>Find the drive</h4>
-<pre><code>lsblk</code></pre>
-<p>Match it by size. External drives are usually <code>sdb</code>, <code>sdc</code> and so on. Use the <b>partition</b> (<code>sdb1</code>), not the whole disk (<code>sdb</code>).</p>
-
-<h4>Format it (new or disposable drives only)</h4>
-<div class="warn"><p>This <b>erases the drive</b>. Double-check the device name. Skip this if the drive is already ext4 with data you want.</p></div>
-<pre><code>sudo mkfs.ext4 -L media /dev/sdb1</code></pre>
-<p>Formatting creates a new UUID, so always get the UUID <b>after</b> formatting.</p>
-
-<h4 id="uuid">Get the drive's UUID</h4>
-<p>Always mount by UUID, because <code>/dev/sdX</code> names can change between reboots.</p>
-<p><b>Method 1:</b> <code>lsblk -f</code></p>
-<pre><code>NAME   FSTYPE LABEL  UUID                                 MOUNTPOINTS
-sda
-├─sda1 vfat          1A2B-3C4D                            /boot
-└─sda2 ext4          f1e2d3c4-b5a6-7890-abcd-ef1234567890 /
-sdb
-└─sdb1 ext4   media  9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4</code></pre>
-<p>The long string in the UUID column is what you need.</p>
-<p><b>Method 2:</b> <code>blkid</code></p>
-<pre><code>sudo blkid /dev/sdb1
-/dev/sdb1: LABEL="media" UUID="9a8b7c6d-5e4f-3a2b-1c0d-e9f8a7b6c5d4" TYPE="ext4"</code></pre>
-<div class="note"><p>Copy the <b>UUID</b>, not the <b>PARTUUID</b>. fstab needs the filesystem UUID.</p></div>
-
-<h4>Create the mount point and mount it</h4>
-<pre><code>sudo mkdir -p /mnt/media
-sudo mount /dev/sdb1 /mnt/media</code></pre>
-
-<h4>Mount on boot</h4>
-<p>Append the line directly to avoid UUID typos (change <code>/dev/sdb1</code> to your partition):</p>
-<pre><code>echo "UUID=$(sudo blkid -s UUID -o value /dev/sdb1)  /mnt/media  ext4  defaults,nofail  0  2" | sudo tee -a /etc/fstab</code></pre>
-<p>Or edit by hand with <code>sudo nano /etc/fstab</code> and add:</p>
-<pre><code>UUID=your-uuid-here  /mnt/media  ext4  defaults,nofail  0  2</code></pre>
-<p><code>nofail</code> lets the server boot even if the drive is unplugged. Check the result, then test without rebooting:</p>
-<pre><code>tail -n 3 /etc/fstab
-sudo systemctl daemon-reload
-sudo umount /mnt/media
-sudo mount -a
-df -h /mnt/media</code></pre>
-<p>If <code>df</code> shows the drive at <code>/mnt/media</code>, fstab works.</p>
-
-<h4>Give Jellyfin permission</h4>
-<pre><code>sudo chown -R jellyfin:jellyfin /mnt/media
-sudo -u jellyfin ls /mnt/media</code></pre>
-
-<h4>Organise your files</h4>
-<pre><code>/mnt/media/
-├── Movies/
-│   └── Movie Name (2020)/
-│       └── Movie Name (2020).mkv
-└── Shows/
-    └── Show Name/
-        └── Season 01/
-            └── Show Name S01E01.mkv</code></pre>
-
-<h4>Add it to Jellyfin</h4>
-<ol>
-<li>Open <code>http://localhost:8096</code> and log in.</li>
-<li>Go to Dashboard → Libraries → Add Media Library.</li>
-<li>Pick the content type (Movies or Shows) and click <b>+</b> next to Folders.</li>
-<li>Choose <code>/mnt/media/Movies</code> (or <code>/mnt/media/Shows</code>) and press OK.</li>
-<li>Repeat for each library and let Jellyfin scan.</li>
-</ol>
-
-<h3 id="s22">2.2 Two or more drives with mergerfs</h3>
-<p>mergerfs combines several drives into one folder, so Jellyfin sees a single large library.</p>
-<pre><code>sudo pacman -S mergerfs</code></pre>
-<h4>Prepare each drive</h4>
-<p>Repeat these steps from 2.1 for every drive, since each has its own UUID:</p>
-<ol>
-<li>Find the partition with <code>lsblk</code>.</li>
-<li>Check it with <code>lsblk -f</code>. If it's already ext4 with data you want, <b>don't format it</b>; mergerfs will include it as it is. If it's blank, format it with <code>mkfs.ext4</code> and a different label for each (<code>disk1</code>, <code>disk2</code>).</li>
-<li>Get its UUID with <code>lsblk -f</code> or <code>sudo blkid /dev/sdX1</code>.</li>
-</ol>
-<pre><code>sudo mkdir -p /mnt/disk1 /mnt/disk2 /mnt/media</code></pre>
-<h4>Add the drives to fstab</h4>
-<pre><code>echo "UUID=$(sudo blkid -s UUID -o value /dev/sdb1)  /mnt/disk1  ext4  defaults,nofail  0  2" | sudo tee -a /etc/fstab
-echo "UUID=$(sudo blkid -s UUID -o value /dev/sdc1)  /mnt/disk2  ext4  defaults,nofail  0  2" | sudo tee -a /etc/fstab</code></pre>
-<h4>Add the merged mount</h4>
-<p>Add this below those lines:</p>
-<pre><code>/mnt/disk1:/mnt/disk2  /mnt/media  fuse.mergerfs  defaults,allow_other,use_ino,cache.files=off,dropcacheonclose=true,category.create=mfs,moveonenospc=true,minfreespace=50G,nofail  0  0</code></pre>
+<div class="grid">
+<a class="card arch" href="arch-archinstall.html">
+<span class="tag">Start here</span>
+<h3>Arch with archinstall and i3</h3>
+<p>Install Arch with a minimal profile, then build a lightweight i3 desktop.</p>
 <ul>
-<li><code>allow_other</code> lets other users, like <code>jellyfin</code>, use the pool.</li>
-<li><code>category.create=mfs</code> writes new files to the drive with the most free space. Use <code>epmfs</code> to keep a show's files together on one drive.</li>
-<li><code>moveonenospc=true</code> moves a write to another drive if one fills up.</li>
-<li><code>minfreespace=50G</code> stops using a drive once it has less than 50 GB free.</li>
+<li>archinstall menu choices</li>
+<li>i3, dmenu, Ly login screen</li>
+<li>Audio and aux port, feh, brightness keys</li>
+<li>yay for the AUR</li>
 </ul>
-<h4>Mount, test, set permissions</h4>
-<pre><code>sudo systemctl daemon-reload
-sudo mount -a
-df -h /mnt/media
-sudo chown -R jellyfin:jellyfin /mnt/disk1 /mnt/disk2</code></pre>
-<p><code>/mnt/media</code> should show the combined size. Add libraries as in 2.1, always through <code>/mnt/media</code>, never the individual disks.</p>
-<h4>Make Jellyfin wait for the drives</h4>
-<p>This stops Jellyfin starting before the pool is mounted and seeing an empty library.</p>
-<pre><code>sudo systemctl edit jellyfin</code></pre>
-<p>Add this, save, then run <code>sudo systemctl restart jellyfin</code>:</p>
-<pre><code>[Unit]
-RequiresMountsFor=/mnt/media</code></pre>
+<span class="go">Open guide</span>
+</a>
 
-<h3 id="s23">2.3 Backups with multiple drives</h3>
-<div class="warn"><p><b>mergerfs is not a backup.</b> If one drive dies, you lose what was on it.</p></div>
-<h4>Option A: a separate backup drive with rsync</h4>
-<p>Prepare a spare drive and mount it at <code>/mnt/backup</code> (same process as 2.1, including the UUID). It must be at least as big as all your media combined.</p>
-<pre><code>rsync -avh --progress /mnt/media/ /mnt/backup/media/</code></pre>
-<p>Leave out <code>--delete</code>, so an accidental delete won't wipe your backup. To run it weekly, create <code>/etc/systemd/system/media-backup.service</code>:</p>
-<pre><code>[Unit]
-Description=Backup media library
-
-[Service]
-Type=oneshot
-ExecStart=/usr/bin/rsync -avh /mnt/media/ /mnt/backup/media/</code></pre>
-<p>and <code>/etc/systemd/system/media-backup.timer</code>:</p>
-<pre><code>[Unit]
-Description=Weekly media backup
-
-[Timer]
-OnCalendar=Sun 03:00
-Persistent=true
-
-[Install]
-WantedBy=timers.target</code></pre>
-<pre><code>sudo systemctl enable --now media-backup.timer</code></pre>
-<h4>Option B: SnapRAID</h4>
-<p>SnapRAID keeps a parity drive that can rebuild a failed drive without a full second copy. It pairs well with mergerfs and suits libraries that rarely change. It's in the AUR as <code>snapraid</code>.</p>
-<h4>Back up Jellyfin's own data</h4>
-<p>Users, watch history and metadata live in <code>/var/lib/jellyfin</code>, and settings in <code>/etc/jellyfin</code>.</p>
-<pre><code>sudo rsync -avh /var/lib/jellyfin/ /mnt/backup/jellyfin-data/</code></pre>
-
-<h2 id="step3">Step 3: Port forwarding</h2>
-<p>Port forwarding tells your router to send internet traffic on a given port to your server. Jellyfin uses <b>TCP 8096</b>. You need the server's local IP, the router's IP, and your public IP.</p>
-
-<h3 id="s31">3.1 Find the server's local IP</h3>
-<pre><code>ip -4 a</code></pre>
-<p>Find your active interface (<code>enp3s0</code>, <code>wlan0</code> and so on) and its <code>inet</code> line:</p>
-<pre><code>inet 192.168.1.50/24 brd 192.168.1.255 scope global dynamic enp3s0</code></pre>
-<p>The local IP here is <code>192.168.1.50</code>. Ignore <code>127.0.0.1</code>. A shortcut:</p>
-<pre><code>ip route get 1.1.1.1 | awk '{print $7; exit}'</code></pre>
-
-<h3 id="s32">3.2 Make the local IP permanent</h3>
-<p>If the server's IP changes after a reboot, the port forward points at nothing and stops working.</p>
-<h4>Option A: DHCP reservation on the router (recommended)</h4>
-<p>Find <b>DHCP Reservation</b>, <b>Static DHCP</b> or <b>Address Reservation</b> in the router settings. Pick your server, or enter its MAC address (the <code>link/ether</code> value from <code>ip link</code>), and assign it an IP.</p>
-<h4>Option B: static IP on the server (NetworkManager)</h4>
-<pre><code>nmcli con show
-sudo nmcli con mod "Wired connection 1" ipv4.method manual ipv4.addresses 192.168.1.50/24 ipv4.gateway 192.168.1.1 ipv4.dns "1.1.1.1,8.8.8.8"
-sudo nmcli con up "Wired connection 1"</code></pre>
-<p>Pick an address outside your router's DHCP range. Use ethernet rather than Wi-Fi for a server if you can.</p>
-
-<h3 id="s33">3.3 Find the router's IP</h3>
-<pre><code>ip route | grep default</code></pre>
-<p>If it shows <code>default via 192.168.1.1</code>, open <code>http://192.168.1.1</code> and log in. The admin password is often on a sticker on the router.</p>
-
-<h3 id="s34">3.4 Create the port forward</h3>
-<p>Look for <b>Port Forwarding</b>, <b>NAT</b>, <b>Virtual Server</b> or <b>Applications &amp; Gaming</b>, then create a rule:</p>
-<div class="tw"><table>
-<tr><th>Field</th><th>Value</th></tr>
-<tr><td>Name</td><td>Jellyfin</td></tr>
-<tr><td>Protocol</td><td>TCP</td></tr>
-<tr><td>External / WAN port</td><td>8096</td></tr>
-<tr><td>Internal / LAN port</td><td>8096</td></tr>
-<tr><td>Internal IP</td><td>Your server's local IP (for example 192.168.1.50)</td></tr>
-<tr><td>Enabled</td><td>Yes</td></tr>
-</table></div>
-<p>Save and apply. Some routers need a reboot. Forward only TCP 8096; the discovery ports (1900/udp, 7359/udp) are for your local network only.</p>
-
-<h3 id="s35">3.5 Server firewall</h3>
-<p>If you use <code>ufw</code> (otherwise skip):</p>
-<pre><code>sudo ufw allow 8096/tcp
-sudo ufw status</code></pre>
-
-<h3 id="s36">3.6 Find your public IP and check for CGNAT</h3>
-<pre><code>curl ifconfig.me</code></pre>
-<p>This is the address people outside use to reach you. Compare it with the <b>WAN / Internet IP</b> on your router's status page.</p>
-<div class="warn"><p><b>If they differ</b>, or the router shows an address starting <code>100.64.</code> to <code>100.127.</code>, <code>10.</code> or <code>192.168.</code>, your ISP uses <b>CGNAT</b> and port forwarding cannot work.</p></div>
-<p>Your options are to ask the ISP for a public IP, or to use a tunnel. <b>Tailscale</b> is the easiest and safest for Jellyfin. Cloudflare's free tunnel restricts streaming video, so avoid it for this.</p>
-
-<h3 id="s37">3.7 Test it</h3>
-<ol>
-<li>Turn off Wi-Fi on your phone so it uses mobile data. Testing from inside your own network often fails even when everything is right.</li>
-<li>Open <code>http://YOUR_PUBLIC_IP:8096</code>. You should see the Jellyfin login page.</li>
-</ol>
-<p>You can also use an online open-port checker with your public IP and port 8096.</p>
-
-<h3 id="s38">3.8 Jellyfin network settings</h3>
-<p>In Dashboard → Networking:</p>
+<a class="card jf" href="jellyfin-arch-guide.html">
+<span class="tag">Media server</span>
+<h3>Jellyfin on Arch</h3>
+<p>Stream your own movies and shows to any device.</p>
 <ul>
-<li>"Allow remote connections to this server" is ticked.</li>
-<li>Local HTTP port number is 8096.</li>
-<li>Automatic port mapping (UPnP) is <b>off</b>. It's a security risk and you've set the forward by hand.</li>
+<li>Install, start and log in</li>
+<li>Drives, UUIDs and mergerfs</li>
+<li>Backups</li>
+<li>Port forwarding and CGNAT check</li>
 </ul>
+<span class="go">Open guide</span>
+</a>
 
-<h3 id="s39">3.9 Keep it secure</h3>
+<a class="card mc" href="minecraft-server-guide.html">
+<span class="tag">Game server</span>
+<h3>Minecraft Java server</h3>
+<p>Host a vanilla server for you and your friends.</p>
 <ul>
-<li>Use strong, unique passwords on every account, especially the admin.</li>
-<li>Give admin rights only where needed.</li>
-<li>Keep Jellyfin updated with <code>sudo pacman -Syu</code>.</li>
-<li>Plain HTTP on 8096 sends passwords <b>unencrypted</b>. For more than casual use, put a reverse proxy such as Caddy or nginx in front with a free HTTPS certificate, forward ports 80 and 443 instead, and close 8096 to the outside.</li>
-<li>Back up your Jellyfin data (see 2.3).</li>
+<li>Java, jar and EULA</li>
+<li>server.properties and start script</li>
+<li>Running 24/7 with tmux</li>
+<li>Port forwarding, backups, updates</li>
 </ul>
-
-<h3 id="s310">3.10 When your public IP changes</h3>
-<p>Most home connections have a dynamic public IP that changes after a router restart or at the ISP's whim. A Dynamic DNS service such as <b>DuckDNS</b> (free) gives you a fixed name like <code>myserver.duckdns.org</code> that follows your IP.</p>
-
-<h3 id="trouble">Troubleshooting</h3>
-<div class="tw"><table>
-<tr><th>Problem</th><th>Likely cause</th></tr>
-<tr><td>Works locally, not from outside</td><td>Missing or wrong port forward, or CGNAT</td></tr>
-<tr><td>Works on Wi-Fi, not on mobile data</td><td>Router or ISP issue, or you tested the public IP from inside your network</td></tr>
-<tr><td>Worked yesterday, not today</td><td>Local IP changed (3.2) or public IP changed (3.10)</td></tr>
-<tr><td>Port checker says closed</td><td>Firewall blocking it, Jellyfin not running, or wrong internal IP</td></tr>
-<tr><td>Page loads but videos won't play</td><td>Bitrate too high for your upload speed; lower the quality in the player</td></tr>
-</table></div>
-</main>
+<span class="go">Open guide</span>
+</a>
 </div>
-<script>
-document.querySelectorAll('pre').forEach(function(p){
-  var b=document.createElement('button');
-  b.type='button';b.textContent='Copy';
-  b.addEventListener('click',function(){
-    var t=p.querySelector('code').innerText;
-    var done=function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1400)};
-    if(navigator.clipboard){navigator.clipboard.writeText(t).then(done)}
-    else{var a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();done()}
-  });
-  p.appendChild(b);
-});
-</script>
+
+<h2>Suggested order</h2>
+<ol class="path">
+<li><a href="arch-archinstall.html">Arch with archinstall and i3</a>: get a working system first.</li>
+<li><a href="jellyfin-arch-guide.html">Jellyfin</a>: the drive setup in Step 2 is reused by anything else that needs storage.</li>
+<li><a href="minecraft-server-guide.html">Minecraft server</a>: it can run on the same machine, since it uses a different port (25565) from Jellyfin (8096).</li>
+</ol>
+
+<h2>Before you forward any ports</h2>
+<p class="note">Both server guides end with port forwarding. Check for CGNAT first (it's in the Jellyfin guide, Step 3.6), because if your ISP shares your public IP, port forwarding can't work and you'll want Tailscale instead.</p>
+
+<footer>Keep all four files in the same folder so the links work. Each guide also works on its own and offline.</footer>
+</div>
 </body>
 </html>
